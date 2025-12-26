@@ -2683,6 +2683,13 @@ void * tTJSNI_BaseLayer::GetMainImagePixelBufferForWrite()
 	return MainImage->GetScanLineForWrite(0);
 }
 //---------------------------------------------------------------------------
+void * tTJSNI_BaseLayer::GetMainImageBitBufferForWrite()
+{
+	if(!MainImage) return NULL;
+	ImageModified = true;
+	return (tjs_uint8*) MainImage->GetBitmap()->GetBits();
+}
+//---------------------------------------------------------------------------
 tjs_int tTJSNI_BaseLayer::GetMainImagePixelBufferPitch() const
 {
 	if(!MainImage) return 0;

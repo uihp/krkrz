@@ -601,7 +601,7 @@ static void __stdcall TVP_Stub_c01b0720b49ce4f792446d8965d2c31f(tTJSString * _th
 }
 static void __stdcall TVP_Stub_4af47e46a11e1357cb994f405289d13e(tTJSString * _this)
 {
-	return _this->ToUppserCase();
+	return _this->ToUpperCase();
 }
 static tjs_uint32 * __stdcall TVP_Stub_25b6dafa19bfa5bde1a8b519da248f82(tTJSString * _this)
 {

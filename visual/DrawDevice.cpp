@@ -23,6 +23,7 @@
 #if 1
 #include "BasicDrawDevice.h"
 #endif
+#include "OGLDrawDevice.h"
 #include "NullDrawDevice.h"
 #include "SysInitIntf.h"
 
@@ -58,7 +59,7 @@ tTJSNativeClass* TVPCreateDefaultDrawDevice() {
 		return new tTJSNC_BasicDrawDevice();
 	else
 #endif
-		return new tTJSNC_NullDrawDevice();
+		return new tTJSNC_OGLDrawDevice();
 }
 //---------------------------------------------------------------------------
 bool TVPIsEnableDrawDevice() {

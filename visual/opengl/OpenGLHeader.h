@@ -1,6 +1,10 @@
 
+#pragma once
+
 #ifndef OpenGLHeaderH
 #define OpenGLHeaderH
+
+#if 0
 
 #if (defined(KRKRZ_ENABLE_CANVAS) && defined(TVP_COMPILING_KRKRSDL2)) || (defined(WIN32) && !defined(TVP_COMPILING_KRKRSDL2))
 #ifdef __EMSCRIPTEN__
@@ -25,5 +29,19 @@ extern void TVPInitializeOpenGLPlatform();
 
 
 TJS_EXP_FUNC_DEF(void*, TVPeglGetProcAddress, (const char * procname));
+
+#endif
+
+#ifdef __EMSCRIPTEN__
+#include <SDL.h>
+#include <SDL_opengles2.h>
+#else
+#include <glad/glad.h>
+#define GL_BGRA_EXT 0x80E1
+#define GL_BGRA8_EXT 0x93A1
+#endif
+
+
+#define TVPeglGetProcAddress SDL_GL_GetProcAddress
 
 #endif

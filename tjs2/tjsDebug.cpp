@@ -809,7 +809,7 @@ private:
 	}
 public:
 	Debugger()
-	 : DebuggerHwnd(INVALID_HANDLE_VALUE), LastLineNo(-1), TypeOfExec(EXEC_RUN)
+	 : DebuggerHwnd(NULL), LastLineNo(-1), TypeOfExec(EXEC_RUN)
 	 , IsInitialConnect(false), StackTraceDepth(10)
 	 , DummyWindow(this,&Debugger::Proc)
 	{
@@ -822,7 +822,7 @@ public:
 	void Initialize() {
 		DebuggerHwnd = ::FindWindow(TJS_W("TScriptDebuggerForm"),NULL);	//!< 名前決め打ち
 		if( DebuggerHwnd == 0 ) {
-			DebuggerHwnd = INVALID_HANDLE_VALUE;
+			DebuggerHwnd = NULL;
 		}
 	}
 	void PrintLog( const tjs_char* mes, bool important ) {
@@ -977,14 +977,14 @@ private:
 	void RequestSetting() {
 		if( DebuggerHwnd != INVALID_HANDLE_VALUE ) {
 			HWND hwnd = DummyWindow.GetOwner();
-			int buff[2] = { (int)&DubuggerCommArea, DEBUGGER_COMM_AREA_MAX };
-			DebuggerMessage	message( DBGEV_GEE_REQUEST_SETTINGS, buff, sizeof(int)*2 );
+			intptr_t buff[2] = { (intptr_t)&DubuggerCommArea, DEBUGGER_COMM_AREA_MAX };
+			DebuggerMessage	message( DBGEV_GEE_REQUEST_SETTINGS, buff, sizeof(intptr_t)*2 );
 			::SendMessage( DebuggerHwnd, WM_COPYDATA, (WPARAM)hwnd, (LPARAM)&message );
 		}
 	}
 	void InitializeConnection() {
 		if( IsInitialConnect ) return;
-		if( DebuggerHwnd == INVALID_HANDLE_VALUE ) return;
+		if( DebuggerHwnd == NULL ) return;
 		if( !::IsDebuggerPresent() ) return;
 
 		RequestSetting();
@@ -999,7 +999,7 @@ private:
 	}
 	void WaitExec( tTJSInterCodeContext* ctx ) {
 		if( IsInitialConnect == false ) return;
-		if( DebuggerHwnd == INVALID_HANDLE_VALUE ) return;
+		if( DebuggerHwnd == NULL ) return;
 		if( !::IsDebuggerPresent() ) return;
 
 		BreakOccur( ctx );	// ブレーク位置とスタックトレースを送る。後でローカル変数も

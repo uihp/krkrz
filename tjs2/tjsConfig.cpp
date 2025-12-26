@@ -206,6 +206,7 @@ void TJS_cdecl TJS_debug_out(const tjs_char *format, ...)
 
 //---------------------------------------------------------------------------
 #define TJS_MB_MAX_CHARLEN 2
+#if 0
 //---------------------------------------------------------------------------
 size_t TJS_mbstowcs(tjs_char *pwcs, const tjs_nchar *s, size_t n)
 {
@@ -245,6 +246,143 @@ size_t TJS_wcstombs(tjs_nchar *s, const tjs_char *pwcs, size_t n)
 		return UnicodeToSJISString(pwcs,NULL);
 	}
 }
+#else
+
+static int utf8_mbtowc(/*conv_t conv,*/ tjs_char *pwc, const unsigned char *s,
+                       int n) {
+    unsigned char c = s[0];
+
+    if(c < 0x80) {
+        *pwc = c;
+        return 1;
+    } else if(c < 0xc2) {
+        return -1;
+    } else if(c < 0xe0) {
+        if(n < 2)
+            return -1;
+        if(!((s[1] ^ 0x80) < 0x40))
+            return -1;
+        *pwc = ((tjs_char)(c & 0x1f) << 6) | (tjs_char)(s[1] ^ 0x80);
+        return 2;
+    } else if(c < 0xf0) {
+        if(n < 3)
+            return -1;
+        if(!((s[1] ^ 0x80) < 0x40 && (s[2] ^ 0x80) < 0x40 &&
+             (c >= 0xe1 || s[1] >= 0xa0)))
+            return -1;
+        *pwc = ((tjs_char)(c & 0x0f) << 12) | ((tjs_char)(s[1] ^ 0x80) << 6) |
+            (tjs_char)(s[2] ^ 0x80);
+        return 3;
+    } else
+        return -1;
+}
+
+static int utf8_wctomb(/*conv_t conv,*/ unsigned char *r, tjs_char wc,
+                       int n) /* n == 0 is acceptable */
+{
+    int count;
+    if(wc < 0x80)
+        count = 1;
+    else if(wc < 0x800)
+        count = 2;
+    else if(wc < 0x10000)
+        count = 3;
+    // 	else if (wc < 0x200000)
+    // 		count = 4;
+    // 	else if (wc < 0x4000000)
+    // 		count = 5;
+    // 	else if (wc <= 0x7fffffff)
+    // 		count = 6;
+    else
+        return -1;
+    if(n < count)
+        return -2;
+    switch(count) { /* note: code falls through cases! */
+            // 	case 6: r[5] = 0x80 | (wc & 0x3f); wc = wc >> 6; wc |=
+            // 0x4000000; 	case 5: r[4] = 0x80 | (wc & 0x3f); wc = wc
+            // >> 6; wc |= 0x200000; 	case 4: r[3] = 0x80 | (wc &
+            // 0x3f); wc = wc >> 6; wc |= 0x10000;
+        case 3:
+            r[2] = 0x80 | (wc & 0x3f);
+            wc = wc >> 6;
+            wc |= 0x800;
+        case 2:
+            r[1] = 0x80 | (wc & 0x3f);
+            wc = wc >> 6;
+            wc |= 0xc0;
+        case 1:
+            r[0] = wc;
+    }
+    return count;
+}
+
+size_t TJS_mbstowcs(tjs_char *pwcs, const tjs_nchar *s, size_t n) {
+	if(!s)
+		return -1;
+	if(pwcs && n == 0)
+		return 0;
+
+	tjs_char wc;
+	size_t count = 0;
+	int cl;
+	if(!pwcs) {
+		n = strlen(s);
+		while(*s) {
+			cl = utf8_mbtowc(&wc, (const unsigned char *)s, n);
+			if(cl <= 0)
+				break;
+			s += cl;
+			n -= cl;
+			++count;
+		}
+	} else {
+		tjs_char *pwcsend = pwcs + n;
+		n = strlen(s);
+		while(*s && pwcs < pwcsend) {
+			cl = utf8_mbtowc(&wc, (const unsigned char *)s, n);
+			if(cl <= 0)
+				return -1;
+			s += cl;
+			n -= cl;
+			*pwcs++ = wc;
+			++count;
+		}
+	}
+	return count;
+}
+
+size_t TJS_wcstombs(tjs_nchar *s, const tjs_char *pwcs, size_t n) {
+	if(!pwcs)
+		return -1;
+	if(s && !n)
+		return 0;
+
+	int cl;
+	if(!s) {
+		unsigned char tmp[6];
+		size_t count = 0;
+		while(*pwcs) {
+			cl = utf8_wctomb(tmp, *pwcs, 6);
+			if(cl <= 0)
+				return -1;
+			pwcs++;
+			count += cl;
+		}
+		return count;
+	} else {
+		tjs_nchar *d = s;
+		while(*pwcs && n > 0) {
+			cl = utf8_wctomb((unsigned char *)d, *pwcs, n);
+			if(cl <= 0)
+				return -1;
+			n -= cl;
+			d += cl;
+			pwcs++;
+		}
+		return d - s;
+	}
+}
+#endif
 //---------------------------------------------------------------------------
 // 使われていないようなので未確認注意
 int TJS_mbtowc(tjs_char *pwc, const tjs_nchar *s, size_t n)

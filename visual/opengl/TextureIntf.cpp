@@ -457,6 +457,16 @@ void tTJSNI_Texture::SetWrapModeVertical( tjs_int v ) {
 }
 //----------------------------------------------------------------------
 
+bool tTJSNI_Texture::Resize(tjs_int width, tjs_int height)
+{
+	if (width <= Texture.width() && height <= Texture.height()) {
+		SrcWidth = width;
+		SrcHeight = height;
+		return true;
+	}
+	return false;
+}
+
 //---------------------------------------------------------------------------
 // tTJSNC_Texture : TJS Texture class
 //---------------------------------------------------------------------------

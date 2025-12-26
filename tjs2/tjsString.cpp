@@ -155,7 +155,7 @@ void tTJSString::ToLowerCase()
 	}
 }
 //---------------------------------------------------------------------------
-void tTJSString::ToUppserCase()
+void tTJSString::ToUpperCase()
 {
 	tjs_char *p = Independ();
 	if(p)
@@ -270,6 +270,42 @@ bool tTJSString::StartsWith(const tjs_char *string) const
 	if(!*string) return true;
 	return false;
 }
+
+TJS::tTJSString tTJSString::SubString(unsigned int pos,
+										unsigned int len) const {
+	if(Ptr == nullptr || len == 0 || pos >= Ptr->GetLength())
+		return {};
+	if(pos == 0 && len >= Ptr->GetLength())
+		return *this;
+	return { Ptr->operator const tjs_char *() + pos, len };
+}
+
+TJS::tTJSString tTJSString::Trim() const {
+	const tjs_char *p = c_str();
+	while(*p > '\0' && *p < 0x20)
+		p++;
+
+	tTJSString _str(p);
+	auto *p0 = (tjs_char *)_str.c_str();
+	tjs_char *p1 = (tjs_char *)_str.c_str() + _str.length() - 1;
+	while(p0 < p1 && *p1 != '\0' && *p1 < 0x20)
+		*p1-- = '\0';
+	_str.Ptr->FixLength();
+	return _str;
+}
+
+int tTJSString::IndexOf(const tTJSString &str,
+						unsigned int pos /*= 0*/) const {
+	if(!Ptr || !str.Ptr)
+		return -1;
+	//    if(str.length() == 0 || pos >= length()) return -1;
+	const tjs_char *p = TJS_strstr(Ptr->operator const tjs_char *() + pos,
+									str.Ptr->operator const tjs_char *());
+	if(p == nullptr)
+		return -1;
+	return p - Ptr->operator const tjs_char *();
+}
+
 //---------------------------------------------------------------------------
 tTJSString operator + (const tjs_char *lhs, const tTJSString &rhs)
 {
@@ -299,7 +335,7 @@ tTJSString TJSInt32ToHex(tjs_uint32 num, int zeropad)
 		*(p++) = (TJS_W("0123456789ABCDEF"))[num % 16];
 		num /= 16;
 		zeropad --;
-	} while(zeropad || num);
+	} while(zeropad > 0 || num);
 
 	p--;
 	while(buf <= p) *(d++) = *(p--);

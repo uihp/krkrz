@@ -795,6 +795,7 @@ tTVPWaveDecoder * tTVPWDC_RIFFWave::Create(const ttstr & storagename,
 #ifdef TVP_OPUS_DECODER_IMPLEMENT
 extern void TVPRegisterOpusDecoderCreator();
 #endif
+extern void TVPRegisterVorbisDecoderCreator();
 //---------------------------------------------------------------------------
 // tTVPWaveDecoder interface management
 //---------------------------------------------------------------------------
@@ -811,6 +812,7 @@ struct tTVPWaveDecoderManager
 #ifdef TVP_OPUS_DECODER_IMPLEMENT
 		TVPRegisterOpusDecoderCreator();
 #endif
+		TVPRegisterVorbisDecoderCreator();
 	}
 
 	~tTVPWaveDecoderManager()

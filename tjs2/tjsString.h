@@ -147,6 +147,8 @@ public:
 		return WideString(Ptr->operator const tjs_char *());
 	}
 #endif
+	tTJSString(const std::string &str) // NOLINT(*-explicit-constructor)
+		: tTJSString_S{ TJSAllocVariantString(str.c_str()) } {}
 
 	const tjs_string AsStdString() const
 	{
@@ -403,7 +405,7 @@ public:
 	TJS_CONST_METHOD_DEF(void, AsUpperCase, (tTJSString &dest)) { dest = AsUpperCase(); }
 
 	TJS_METHOD_DEF(void, ToLowerCase, ());
-	TJS_METHOD_DEF(void, ToUppserCase, ());
+	TJS_METHOD_DEF(void, ToUpperCase, ());
 
 	tjs_int TJS_cdecl printf(const tjs_char *format, ...);
 
@@ -476,6 +478,25 @@ public:
 	TJS_STATIC_METHOD_DEF(void, operator delete [], (void *p)) { delete [] ((char*)p); }
 
 	TJS_STATIC_METHOD_DEF(void *, operator new, (size_t size, void *buf)) { return buf; }
+
+	//--------------------------------------------- indexer /
+        // finder --
+	[[nodiscard]] int IndexOf(const tTJSString &str,
+								unsigned int pos = 0) const;
+
+	int IndexOf(const char *s, unsigned int pos = 0,
+				unsigned int n = -1) const {
+		return IndexOf(tTJSString(s, n), pos);
+	}
+
+	[[nodiscard]] int IndexOf(tjs_char c, unsigned int pos = 0) const {
+		return IndexOf(tTJSString(&c, 1), pos);
+	}
+
+	[[nodiscard]] tTJSString SubString(unsigned int pos,
+										unsigned int len) const;
+
+	[[nodiscard]] tTJSString Trim() const;
 };
 /*end-of-tTJSString*/
 TJS_EXP_FUNC_DEF(tTJSString, operator +, (const tjs_char *lhs, const tTJSString &rhs));

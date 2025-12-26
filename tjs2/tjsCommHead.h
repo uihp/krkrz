@@ -35,7 +35,7 @@
 #endif
 
 #ifdef  _DEBUG
-#define _CRTDBG_MAP_ALLOC
+// #define _CRTDBG_MAP_ALLOC
 #include <cstdlib>
 #include <crtdbg.h>
 #define TJS_CRTDBG_MAP_ALLOC

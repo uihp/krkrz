@@ -70,7 +70,7 @@ public:
 		void* result = nullptr;
 		if( vbo_id_ ) {
 			glBindBuffer( target_, vbo_id_ );
-			result = glMapBufferRange( target_, 0, size_, GL_MAP_READ_BIT|GL_MAP_WRITE_BIT );
+			result = glMapBufferRange( target_, 0, size_, GL_MAP_READ_BIT|GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
 			glBindBuffer( target_, 0 );
 		}
 		return result;

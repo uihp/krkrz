@@ -523,6 +523,7 @@ ttstr tTJSInterCodeContext::GetShortDescriptionWithClassName() const
 ttstr tTJSInterCodeContext::GetClassName() const
 {
 	ttstr ret;
+	return ret;
 
 	tTJSInterCodeContext * parent;
 

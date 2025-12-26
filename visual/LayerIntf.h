@@ -480,6 +480,7 @@ public:
 
 	const void * GetMainImagePixelBuffer() const;
 	void * GetMainImagePixelBufferForWrite();
+	void * GetMainImageBitBufferForWrite();
 	tjs_int GetMainImagePixelBufferPitch() const;
 	const void * GetProvinceImagePixelBuffer() const;
 	void * GetProvinceImagePixelBufferForWrite();
