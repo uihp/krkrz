@@ -912,12 +912,7 @@ void TVPInitializeStartupScript()
 {
 	TVPStartObjectHashMap();
 
-#ifdef _WIN32
-	TVPExecuteStorage((ttstr) IncludeTrailingBackslash(ExtractFileDir(ExePath())) + "patch.tjs");
-#endif
-#ifdef __EMSCRIPTEN__
-	TVPExecuteStorage("/patch.tjs");
-#endif
+	TVPExecuteStorage((ttstr) IncludeTrailingSlash(ExtractFileDir(ExePath())) + "patch.tjs");
 	TVPExecuteStartupScript();
 	if(TVPTerminateOnNoWindowStartup && TVPGetWindowCount() == 0 ) {
 		// no window is created and main window is invisible
