@@ -15,6 +15,7 @@
 #include "ComplexRect.h"
 
 #include "BitmapInfomation.h"
+#include "FontRasterizer.h"
 
 //---------------------------------------------------------------------------
 extern void TVPSetFontCacheForLowMem();
@@ -252,6 +253,6 @@ public:
 	void operator =(const tTVPNativeBaseBitmap &rhs) { Assign(rhs); }
 };
 //---------------------------------------------------------------------------
-
+FontRasterizer *GetCurrentRasterizer();
 
 #endif
