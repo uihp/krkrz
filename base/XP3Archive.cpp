@@ -26,6 +26,7 @@
 #include <zlib/zlib.h>
 #endif
 #include <algorithm>
+#include <unordered_map>
 
 bool TVPAllowExtractProtectedStorage = true;
 
@@ -349,6 +350,10 @@ tTVPXP3Archive::tTVPXP3Archive(const ttstr & name) : tTVPArchive(name)
 		{ 0x73/*'s'*/, 0x65/*'e'*/, 0x67/*'g'*/, 0x6d/*'m'*/ };
 	static const tjs_uint8 cn_adlr[] =
 		{ 0x61/*'a'*/, 0x64/*'d'*/, 0x6c/*'l'*/, 0x72/*'r'*/ };
+	static const tjs_uint8 cn_senc[] =
+		{ 0x73/*'s'*/, 0x65/*'e'*/, 0x6e/*'n'*/, 0x3a/*':'*/ };
+	static const tjs_uint8 cn_hnfn[] =
+		{ 0x68/*'h'*/, 0x6e/*'n'*/, 0x66/*'f'*/, 0x6e/*'n'*/ };
 
 	TVPAddLog( TVPFormatMessage(TVPInfoTryingToReadXp3VirtualFileSystemInformationFrom, name) );
 
@@ -427,6 +432,60 @@ tTVPXP3Archive::tTVPXP3Archive(const ttstr & name) : tTVPArchive(name)
 				TVPThrowExceptionMessage(TVPReadError);
 			}
 
+			bool hasNameTable = false;
+			std::unordered_multimap<tjs_uint32, ttstr> nameTable;
+			tjs_uint ch_senc_start = 0;
+			tjs_uint ch_senc_size = index_size;
+			if(FindChunk(indexdata, cn_senc, ch_senc_start, ch_senc_size)) {
+				hasNameTable = true;
+				tjs_uint64 offset = ReadI64FromMem(indexdata + ch_senc_start);
+				tjs_uint32 size = ReadI32FromMem(indexdata + ch_senc_start + 8);
+				tjs_uint32 compressed_size = ReadI32FromMem(indexdata + ch_senc_start + 8 + 4);
+				tjs_uint8 *sencdata = new tjs_uint8[(tjs_uint)size];
+				tjs_uint8 *compressed = new tjs_uint8[(tjs_uint)compressed_size];
+				try
+				{
+					st->SetPosition(offset);
+					st->ReadBuffer(compressed, (tjs_uint)compressed_size);
+
+					unsigned long destlen = (unsigned long)size;
+
+					int result = uncompress(  /* uncompress from zlib */
+						(unsigned char *)sencdata,
+						&destlen, (unsigned char*)compressed,
+							(unsigned long)compressed_size);
+					if(result != Z_OK ||
+						destlen != (unsigned long)size)
+							TVPThrowExceptionMessage(TVPUncompressionFailed);
+				}
+				catch(...)
+				{
+					delete [] compressed;
+					throw;
+				}
+				delete [] compressed;
+				tjs_uint ch_hnfn_start = 0;
+				tjs_uint ch_hnfn_size = size;
+				for(;;)
+				{
+					if (!FindChunk(sencdata, cn_hnfn, ch_hnfn_start, ch_hnfn_size)) break;
+					if (ch_hnfn_size < 0)
+						break;
+					tjs_int32 hash = ReadI32FromMem(sencdata + ch_hnfn_start); // uint hash = input.ReadUInt32();
+					tjs_int16 name_size = ReadI32FromMem(sencdata + ch_hnfn_start + 4); // int name_size = input.ReadInt16();
+					if (name_size > 0)
+					{
+						if (name_size * 2 <= ch_hnfn_size - 6)
+						{
+							ttstr filename = TVPStringFromBMPUnicode(
+								(const tjs_uint16 *)(sencdata + ch_hnfn_start + 4 + 2), name_size);
+							nameTable.insert({hash, filename});
+						}
+					}
+					ch_hnfn_start += ch_hnfn_size;
+					ch_hnfn_size = size - ch_hnfn_start;
+				}
+			}
 
 			// read index information from memory
 			tjs_uint ch_file_start = 0;
@@ -516,6 +575,14 @@ tTVPXP3Archive::tTVPXP3Archive(const ttstr & name) : tTVPArchive(name)
 
 				// read 'aldr' sub-chunk
 				item.FileHash = ReadI32FromMem(indexdata + ch_adlr_start);
+
+				if (hasNameTable) {
+					auto it = nameTable.find(item.FileHash);
+					if (it != nameTable.end()) {
+						item.Name = it->second;
+						nameTable.erase(it);
+					}
+				}
 
 				// push information
 				ItemVector.push_back(item);
