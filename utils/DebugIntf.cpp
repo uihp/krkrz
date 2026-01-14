@@ -655,7 +655,7 @@ TJS_END_NATIVE_CONSTRUCTOR_DECL(/*TJS class name*/Debug)
 //----------------------------------------------------------------------
 TJS_BEGIN_NATIVE_METHOD_DECL(/*func. name*/message)
 {
-	if(numparams<1) return TJS_S_OK; // TJS_E_BADPARAMCOUNT;
+	if(numparams<1) return TJS_E_BADPARAMCOUNT;
 
 	if(numparams == 1)
 	{
