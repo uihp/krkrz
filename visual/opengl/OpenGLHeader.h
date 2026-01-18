@@ -33,8 +33,8 @@ TJS_EXP_FUNC_DEF(void*, TVPeglGetProcAddress, (const char * procname));
 #endif
 
 #ifdef __EMSCRIPTEN__
-#include <SDL.h>
-#include <SDL_opengles2.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_opengles2.h>
 #else
 #include <glad/glad.h>
 #define GL_BGRA_EXT 0x80E1

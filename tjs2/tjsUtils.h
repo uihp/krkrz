@@ -16,7 +16,7 @@
 
 #if 1
 #ifdef KRKRZ_USE_SDL_THREADS
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #elif defined(_WIN32)
 #include <windows.h>
 #include <mutex>
@@ -41,7 +41,7 @@ namespace TJS
 class tTJSCriticalSection
 {
 #ifdef KRKRZ_USE_SDL_THREADS
-	SDL_mutex *Mutex;
+	SDL_Mutex *Mutex;
 #else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	std::recursive_mutex Mutex;

@@ -13,7 +13,7 @@
 #include "tjsNative.h"
 
 #ifdef KRKRZ_USE_SDL_THREADS
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 #include <thread>
@@ -45,7 +45,7 @@ class tTVPThread
 protected:
 #ifdef KRKRZ_USE_SDL_THREADS
 	SDL_Thread* Thread;
-	SDL_threadID ThreadId;
+	SDL_ThreadID ThreadId;
 #else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	std::thread* Thread;
@@ -57,8 +57,8 @@ private:
 	bool Terminated;
 
 #ifdef KRKRZ_USE_SDL_THREADS
-	SDL_mutex *Mtx;
-	SDL_cond *Cond;
+	SDL_Mutex *Mtx;
+	SDL_Condition *Cond;
 #else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	std::mutex Mtx;
@@ -104,7 +104,7 @@ public:
 
 #ifdef KRKRZ_USE_SDL_THREADS
 	SDL_Thread* GetHandle() const { return Thread; }
-	SDL_threadID GetThreadId() const { if (ThreadId) return ThreadId; else return SDL_ThreadID(); }
+	SDL_ThreadID GetThreadId() const { if (ThreadId) return ThreadId; else return SDL_ThreadID(); }
 #else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	std::thread::native_handle_type GetHandle() { if(Thread) return Thread->native_handle(); else return (std::thread::native_handle_type)NULL; }
@@ -121,8 +121,8 @@ public:
 class tTVPThreadEvent
 {
 #ifdef KRKRZ_USE_SDL_THREADS
-	SDL_mutex *Mtx;
-	SDL_cond *Cond;
+	SDL_Mutex *Mtx;
+	SDL_Condition *Cond;
 #else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	std::mutex Mtx;
@@ -136,13 +136,13 @@ public:
 	{
 #ifdef KRKRZ_USE_SDL_THREADS
 		Mtx = SDL_CreateMutex();
-		Cond = SDL_CreateCond();
+		Cond = SDL_CreateCondition();
 #endif
 	}
 	virtual ~tTVPThreadEvent()
 	{
 #ifdef KRKRZ_USE_SDL_THREADS
-		SDL_DestroyCond(Cond);
+		SDL_DestroyCondition(Cond);
 		SDL_DestroyMutex(Mtx);
 #endif
 	}
@@ -151,7 +151,7 @@ public:
 #ifdef KRKRZ_USE_SDL_THREADS
 		SDL_LockMutex(Mtx);
 		IsReady = true;
-		SDL_CondBroadcast(Cond);
+		SDL_BroadcastCondition(Cond);
 		SDL_UnlockMutex(Mtx);
 #else
 #if (!defined(__EMSCRIPTEN__)) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
@@ -174,7 +174,7 @@ public:
 		SDL_LockMutex(Mtx);
 		if( timeout == 0 ) {
 			while (!IsReady) {
-				SDL_CondWait(Cond, Mtx);
+				SDL_WaitCondition(Cond, Mtx);
 			}
 			IsReady = false;
 			SDL_UnlockMutex(Mtx);
@@ -182,7 +182,7 @@ public:
 		} else {
 			bool result = false;
 			while (!IsReady) {
-				int tmResult = SDL_CondWaitTimeout(Cond, Mtx, timeout);
+				int tmResult = SDL_WaitConditionTimeout(Cond, Mtx, timeout);
 				if (tmResult == SDL_MUTEX_TIMEDOUT) {
 					result = IsReady;
 					break;

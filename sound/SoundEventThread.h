@@ -19,7 +19,7 @@ class tTVPSoundEventThread : public tTVPThread
 {
 	tTVPThreadEvent Event;
 #ifdef KRKRZ_USE_SDL_THREADS
-	SDL_mutex *SuspendMutex;
+	SDL_Mutex *SuspendMutex;
 #else
 #if !defined(__EMSCRIPTEN__) || (defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__))
 	std::mutex SuspendMutex;

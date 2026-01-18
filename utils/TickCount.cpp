@@ -16,7 +16,7 @@
 #include "ThreadIntf.h"
 
 #ifdef TVP_COMPILING_KRKRSDL2
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #else
 #ifdef _WIN32
 #include <mmsystem.h>
